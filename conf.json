@@ -1,19 +1,23 @@
 {
-	"show_video": true,
-	"use_dropbox": false,
+	"show_video": false,
+	"use_dropbox": true,
 	"dropbox_key": "dropbox_key",
 	"dropbox_secret": "dropbox_secret",
-	"dropbox_base_path": "img",
+	"dropbox_base_path": "/home/pi/SPi/img",
 	"min_upload_seconds": 1.0,
 	"min_motion_frames": 3,
-	"camera_warmup_time": 0,
-	"delta_thres": 10,
-	"width": 320,
+	"camera_warmup_time": 60,
+	"delta_thres": 20,
+	"width": 640,
 	"fps": 10,
 	"min_area": 500,
-	"check_seconds": 5,
-	"tokenpath": "/media/781A-D9F4/token",
+	"write_seconds": 60,
+	"read_seconds": 120,
+	"tokenpath_old": "/media/781A-D9F4/token",
+	"tokenpath": "/media/usbhd-sda1/token",
 	"tmptokenpath": "/tmp/token",
-	"tmptimepath": "/tmp/teatime"
+	"tmptimepath": "/tmp/teatime",
+	"tokenstart": "LT6eCHzo",
+	"tokenend": "j6ljjY9R"
 
 }
