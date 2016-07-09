@@ -16,11 +16,11 @@ import os
 
 def upload(q, t, path, client):
 	q.put(client.put_file(path, open(t.path, "rb")))
-	q.put(t.cleanup())
+	#q.put(t.cleanup())
 
 def writeTime(timefile, time):
 	with open(timefile, "w") as file:
-		print time
+		#print "Timefile: ", time
 		file.write(str(time))
 	
 	
@@ -44,7 +44,7 @@ if conf["use_dropbox"]:
 	if os.path.isfile(path):
 		tokenfile = open(path, 'r')
 		for line in tokenfile.readlines():
-			token = line.split("LT6eCHzo")[1].split("j6ljjY9R")[0]
+			token = line.split(conf["tokenstart"])[1].split(conf["tokenend"])[0]
 			#print token
 	# connect to dropbox and start the session authorization process
 	#flow = DropboxOAuth2FlowNoRedirect(conf["dropbox_key"], conf["dropbox_secret"])
@@ -71,17 +71,22 @@ timefile = conf["tmptimepath"]
 
 while True:
 	timestamp = datetime.datetime.now()
+	
+	if not os.path.exists(timefile):
+		print "Creating tmp timefile..."
+		file = open(timefile, "w")
+		file.write(str(timestamp))
+		file.close()
+		os.chmod(timefile, 0666)
+
 	if lasttime == -1:
 		lasttime = timestamp
 
-	if (timestamp - lasttime).seconds > conf["check_seconds"]:
+	if (timestamp - lasttime).seconds > conf["write_seconds"]:
 		threadOfTime = threading.Thread(target=writeTime, args=(timefile,timestamp))
 		threadOfTime.daemon = True
 		threadOfTime.start()		
 		lasttime = timestamp
-	else:
-		continue
-	
 	
 	# grab current frame and initialise occupied/unoccupied
 	(grabbed, frame) = camera.read()
@@ -117,7 +122,6 @@ while True:
 	# loop over contours
 	for c in cnts:
 		# if the contour is too small, ignore
-		#print args["min_area"]
 		if cv2.contourArea(c) < conf["min_area"]:
 			continue
 			
@@ -125,7 +129,6 @@ while True:
 		(x, y, w, h) = cv2.boundingRect(c)
 		cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
 		text = "Occupied"
-		print text
 		
 	ts = timestamp.strftime("%A %d %B %Y %H:%M:%S")
 	cv2.putText(frame, "Room Status: {}".format(text), (5,15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 1)
@@ -133,17 +136,17 @@ while True:
 	
 	# check to see if the room is occupied
 	if text == "Occupied":
-		print "if ", text
+		#print "if ", text
 		# check to see if enough time has passed between uploads
 		if (timestamp - lastUploaded).seconds >= conf["min_upload_seconds"]:
 			# increment the motion counter
 			motionCounter += 1
-			print "motion counter ", motionCounter
+			#print "motion counter ", motionCounter
  
 			# check to see if the number of frames with consistent motion is
 			# high enough
 			if motionCounter >= conf["min_motion_frames"]:
-				print motionCounter, " >= ", conf["min_motion_frames"]
+				#print motionCounter, " >= ", conf["min_motion_frames"]
 				ts = timestamp.strftime("%Y%m%d%H%M%S%f")
 				# write the image to temporary file
 				t = TempImage(timestamp=ts)
@@ -156,15 +159,15 @@ while True:
 					path = "{base_path}/{timestamp}.jpg".format(base_path=conf["dropbox_base_path"], timestamp=ts)
 					print path
 					joblist.append(t)
-					print "No. of jobs: ", len(joblist), joblist
-					print q
+					#print "No. of jobs: ", len(joblist), joblist
+					#print q
 					for job in joblist:
 						thread = threading.Thread(target=upload, args = (q,job,path,client))
 						thread.daemon = True
 						thread.start()
 						joblist.pop(joblist.index(job))
-					s = q.get()
-					print s
+					#s = q.get()
+					#print s
 
 				# update the last uploaded timestamp and reset the motion
 				# counter
