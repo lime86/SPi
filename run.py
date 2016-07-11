@@ -27,23 +27,32 @@ def start_surveillance():
 	surveillance = subprocess.Popen(["/home/pi/.virtualenvs/cv/bin/python", "/home/pi/SPi/pi_surveillance.py", "--conf", "/home/pi/SPi/conf.json"])
 	return surveillance.pid
 
-if os.path.exists("/dev/video0"):
-	print "Camera connected."
-else:
-	print "No camera found!"
-	quit()
+def check_camera():
+	if os.path.exists("/dev/video0"):
+		print "Camera connected."
+	else:
+		print "No camera found! Wait..."
+		time.sleep(30)
+		check_camera()
+
+def check_token():
+	if os.path.isfile(tokenpath):
+		if not os.path.exists(tmptokenpath):
+			shutil.copy(tokenpath, tmptokenpath)
+			os.chmod(tmptokenpath, 0666)
+	else:
+		print "No token."
+		time.sleep(30)
+		check_token()
+		
 
 if __name__ == "__main__":
 	if conf["use_dropbox"]:
-		if os.path.isfile(tokenpath):
-			if not os.path.exists(tmptokenpath):
-				shutil.copy(tokenpath, tmptokenpath)
-				os.chmod(tmptokenpath, 0666)
-		else:
-			print "No token."
-			quit()
+		check_token()
+		
+	check_camera()
 	pid = start_surveillance()
-	time.sleep(conf["camera_warmup_time"])
+	time.sleep(conf["camera_warmup_time"]+conf["read_seconds"])
 #	print "Process PID: ", pid
 
 while True:
