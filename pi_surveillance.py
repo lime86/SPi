@@ -46,14 +46,17 @@ if conf["use_dropbox"]:
 		for line in tokenfile.readlines():
 			token = line.split(conf["tokenstart"])[1].split(conf["tokenend"])[0]
 			#print token
+			client = DropboxClient(token)
+			print "[SUCCESS] dropbox account linked"
+	else:
+		pass
 	# connect to dropbox and start the session authorization process
 	#flow = DropboxOAuth2FlowNoRedirect(conf["dropbox_key"], conf["dropbox_secret"])
 	#print "[INFO] Authorize this application: {}".format(flow.start())
 	#authCode = raw_input("Enter auth code here: ").strip()
 	# finish the authorization and grab the Dropbox client
 	#(accessToken, userID) = flow.finish(authCode)
-	client = DropboxClient(token)
-	print "[SUCCESS] dropbox account linked"
+	
 
 camera = cv2.VideoCapture(0)
 #camera.set(5, conf["fps"]) ##doesnt work
