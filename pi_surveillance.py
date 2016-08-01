@@ -14,9 +14,10 @@ import threading
 import Queue
 import os
 
-def upload(q, t, path, client):
+def upload(q, t, path, client, save):
 	q.put(client.put_file(path, open(t.path, "rb")))
-	#q.put(t.cleanup())
+	if not save:
+		q.put(t.cleanup())
 
 def writeTime(timefile, time):
 	with open(timefile, "w") as file:
@@ -165,7 +166,7 @@ while True:
 					#print "No. of jobs: ", len(joblist), joblist
 					#print q
 					for job in joblist:
-						thread = threading.Thread(target=upload, args = (q,job,path,client))
+						thread = threading.Thread(target=upload, args = (q,job,path,client,conf["save_img"]))
 						thread.daemon = True
 						thread.start()
 						joblist.pop(joblist.index(job))
