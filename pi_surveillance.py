@@ -3,6 +3,8 @@
 from pyimagesearch.tempimage import TempImage
 from dropbox.client import DropboxOAuth2FlowNoRedirect
 from dropbox.client import DropboxClient
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import argparse
 import warnings
 import datetime
@@ -59,8 +61,15 @@ if conf["use_dropbox"]:
 	#(accessToken, userID) = flow.finish(authCode)
 	
 
-camera = cv2.VideoCapture(0)
+#camera = cv2.VideoCapture(0)
 #camera.set(5, conf["fps"]) ##doesnt work
+
+#--- picamera
+camera = PiCamera()
+camera.resolution = tuple(conf["resolution"])
+camera.framerate = conf["fps"]
+rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
+
 #print camera.get(5)
 
 # allow the camera to warmup, then initialize the average frame, last
@@ -73,7 +82,9 @@ motionCounter = 0
 
 timefile = conf["tmptimepath"]
 
-while True:
+#while True:
+#--- picamera
+for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 	timestamp = datetime.datetime.now()
 	
 	if not os.path.exists(timefile):
@@ -93,7 +104,9 @@ while True:
 		lasttime = timestamp
 	
 	# grab current frame and initialise occupied/unoccupied
-	(grabbed, frame) = camera.read()
+	# (grabbed, frame) = camera.read()
+	#-- picamera
+	frame = f.array 
 	text = "Unoccupied"
 
 	# if not grabbed then end of video
@@ -107,7 +120,9 @@ while True:
 	# if the average frame is None, initialize it
 	if avg is None:
 		print "[INFO] starting background model..."
-		avg = gray.copy().astype("float")
+		avg = gray.copy().astype("float")	
+		# --- picamera
+		rawCapture.truncate(0)
 		continue
  
 	# accumulate the weighted average between the current frame and
@@ -190,6 +205,9 @@ while True:
 		# if the `q` key is pressed, break from the lop
 		if key == ord("q"):
 			break
+	
+	#--- picamera		
+	rawCapture.truncate(0)
 			
 
 		
